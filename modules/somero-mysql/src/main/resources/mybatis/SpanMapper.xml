@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jzx.bda.somero.mysql.persistent.dao.SpanMapper">
+    <resultMap id="SpanResultMap" type="SpanEntity">
+        <result property="serviceId" column="service" />
+        <result property="spanName" column="name" />
+        <result property="id" column="spanId" />
+    </resultMap>
+
+    <insert id="addSpan" parameterType="SpanEntity" >
+        INSERT INTO span (name,traceId,parentId,spanId,service)
+        VALUES(#{spanName},#{traceId},#{parentId},#{id},#{serviceId})
+    </insert>
+
+    <select id="findSpanByTraceId" parameterType="Long" resultMap="SpanResultMap">
+        SELECT * FROM span WHERE traceId = #{traceId}
+    </select>
+
+    <delete id="deleteAllSpan">
+        delete from span
+    </delete>
+
+</mapper>

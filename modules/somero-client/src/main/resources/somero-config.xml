@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+	http://code.alibabatech.com/schema/dubbo
+	http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+	<!-- 提供方应用信息，用于计算依赖关系 -->
+	<dubbo:application name="somero-client" />
+
+	<!-- 使用zookeeper广播注册中心暴露服务地址 -->
+	<dubbo:registry address="zookeeper://192.168.1.11:2181" />
+
+	<!-- 用dubbo协议在20880端口暴露服务 -->
+<!-- 	<dubbo:protocol name="dubbo" port="20881" /> -->
+
+	<bean id="configuration" class="com.jzx.bda.somero.agent.support.Configuration">
+		<property name="delayTime" value="3000"></property>
+		<property name="flushSize" value="10"></property>
+		<property name="queueSize" value="1024"></property>
+	</bean>
+	<!--leadService -->
+	<dubbo:reference id="leaderService" interface="com.jzx.bda.somero.dubbomonitor.LeaderService" filter="-somero" check="false" timeout="2000" />
+	<!--someroService -->
+	<dubbo:reference id="someroService" interface="com.jzx.bda.somero.dubbomonitor.SomeroService" filter="-somero" check="false" timeout="2000" />
+
+	<bean id="traceService" class="com.jzx.bda.somero.agent.support.TraceService">
+		<property name="someroService" ref="someroService"/>
+		<property name="leaderService" ref="leaderService"/>
+	</bean>
+	<bean id="transfer" class="com.jzx.bda.somero.agent.support.DefaultSyncTransfer">
+		<property name="traceService" ref="traceService" />
+		<constructor-arg ref="configuration" />
+	</bean>
+	<!--被SomeroFilter使用 -->
+	<bean id="tracer" class="com.jzx.bda.somero.agent.Tracer" factory-method="getTracer">
+		<property name="traceService" ref="traceService" />
+		<property name="transfer" ref="transfer" />
+	</bean>
+
+</beans>
